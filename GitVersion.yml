@@ -1,0 +1,13 @@
+mode: Mainline
+branches:
+  main:
+    regex: ^main$
+    tag: ''
+    increment: Patch
+  feature:
+    regex: ^features?[\/-][a-zA-Z0-9_.-]+$
+    tag: alpha
+    increment: Inherit
+ignore:
+  sha: []
+merge-message-formats: {}
