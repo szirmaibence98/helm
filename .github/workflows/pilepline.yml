@@ -4,9 +4,13 @@ on:
 
 jobs:
 
+  gitversion:
+    name: 'GitVersion'
+    uses: szirmaibence98/templates/.github/workflows/gitversion.yml@main
 
   helm:
     uses: szirmaibence98/templates/.github/workflows/helm.yml@main
+    needs: gitversion
     with:
       release: ${{ github.event.inputs.release == 'true' }}
     secrets:
