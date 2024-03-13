@@ -1,0 +1,42 @@
+{{- if .Values.blobVolume.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "appname" . }}
+  labels:
+    app: {{ template "appname" . }}
+    helm.sh/chart: {{ template "chartname" . }}
+    app.kubernetes.io/name: {{ template "appname" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: {{ .Values.application.component | quote }}
+spec:
+  capacity:
+    storage: {{ .Values.blobVolume.capacity }}
+  accessModes:
+    - {{ .Values.blobVolume.accessModes }}
+  persistentVolumeReclaimPolicy: {{ .Values.blobVolume.persistentVolumeReclaimPolicy }}
+  storageClassName: {{ .Values.blobVolume.storageClassName }}
+  csi:
+    driver: {{ .Values.blobVolume.csi.driver }}
+    readOnly: {{ .Values.blobVolume.csi.readOnly }}
+    volumeHandle: {{ .Values.blobVolume.csi.volumeHandle }}
+    volumeAttributes:
+      resourceGroup: {{ .Values.blobVolume.csi.volumeAttributes.resourceGroup }}
+      storageAccount: {{ .Values.blobVolume.csi.volumeAttributes.storageAccount }}
+      containerName: {{ .Values.blobVolume.csi.volumeAttributes.containerName }}
+      protocol: {{ .Values.blobVolume.csi.volumeAttributes.protocol }}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ template "appname" . }}
+spec:
+  accessModes:
+    - {{ .Values.blobVolume.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.blobVolume.capacity }}
+  volumeName: {{ template "appname" . }}
+  storageClassName: {{ .Values.blobVolume.storageClassName }}
+{{- end }}

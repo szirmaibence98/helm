@@ -1,7 +1,9 @@
+{{- if .Values.configmap.enabled }}
+---
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: "{{ template "appname" . }}-test-connection"
+  name: {{ template "appname" . }}
   labels:
     app: {{ template "appname" . }}
     helm.sh/chart: {{ template "chartname" . }}
@@ -9,12 +11,14 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/component: {{ .Values.application.component | quote }}
-  annotations:
-    "helm.sh/hook": test
-spec:
-  containers:
-    - name: wget
-      image: busybox
-      command: ['wget']
-      args: ['{{ template "appname" . }}:{{ .Values.service.port }}']
-  restartPolicy: Never
+data:
+  {{- with .Values.configmap.data }}        
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+binaryData:
+  {{- with .Values.configmap.binaryData }}        
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+
+

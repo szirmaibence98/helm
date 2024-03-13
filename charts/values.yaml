@@ -1,8 +1,13 @@
-# Default values for base.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+application:
+  name: ifa2-base
+  component: simple
 
 replicaCount: 1
+
+pdb:
+  create: false
+  minAvailable: 1
+  maxUnavailable: ""
 
 image:
   repository: nginx
@@ -14,11 +19,14 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+#environment:
+#  - name: SPRING_CONFIG_LOCATION
+#    value: /app/config/
+
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
-  # Automatically mount a ServiceAccount's API credentials?
-  automount: true
   # Annotations to add to the service account
   annotations: {}
   # The name of the service account to use.
@@ -26,7 +34,6 @@ serviceAccount:
   name: ""
 
 podAnnotations: {}
-podLabels: {}
 
 podSecurityContext: {}
   # fsGroup: 2000
@@ -42,6 +49,17 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 80
+  nodePort: ""
+  metricsPort: 9102
+  metricsPortName: metrics
+  metricsNodePort: ""
+#    annotations:
+#      prometheus.io/scrape: 'true'
+#      prometheus.io/port: '9102'
+#      prometheus.io/path: /metrics
+
+
+
 
 ingress:
   enabled: false
@@ -60,10 +78,6 @@ ingress:
   #      - chart-example.local
 
 resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
   #   cpu: 100m
   #   memory: 128Mi
@@ -71,37 +85,184 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
-livenessProbe:
-  httpGet:
-    path: /
-    port: http
-readinessProbe:
-  httpGet:
-    path: /
-    port: http
+
+#livenessProbe:
+#  httpGet:
+#    path: /health
+#    port: 8080
+#  initialDelaySeconds: 90
+#  periodSeconds: 3
+        
+#readinessProbe:
+#    httpGet:
+#      path: /health
+#      port: 8080
+#    initialDelaySeconds: 90
+#    periodSeconds: 2
+#    failureThreshold: 20
+
+#startupProbe:
+#  httpGet:
+#    path: /start
+#    port: 443
+#    scheme: HTTPS
+#  initialDelaySeconds: 10
+#  periodSeconds: 5
+#  failureThreshold: 10
+
+
+
 
 autoscaling:
   enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
+#  minReplicas: 2
+#  maxReplicas: 6
+#  targetCPUUtilizationPercentage: 80
+#  targetMemoryUtilizationPercentage: 80
+#  custom:
+#    type: Pods
+#    metricName: ibm_mq_input
+#    targetType: AverageValue
+#    averageValue: 20
+#    metrics:
+#      endpoint: /metrics
 
-# Additional volumes on the output Deployment definition.
-volumes: []
-# - name: foo
-#   secret:
-#     secretName: mysecret
-#     optional: false
 
-# Additional volumeMounts on the output Deployment definition.
-volumeMounts: []
-# - name: foo
-#   mountPath: "/etc/foo"
-#   readOnly: true
+nginxMonitoring:
+  enabled: false
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: ""
+    relabellings: []
+    relabelings: []
+    metricRelabelings: []
+    honorLabels: false
+    additionalLabels: {}
+    targetLabels: {}
+    podTargetLabels: {}
+    path: "/metrics"
+
+  prometheusRule:
+    enabled: false
+    additionalLabels: {}
+    rules: []
+    ## rules:
+    ##   - alert: RabbitmqDown
+    ##     expr: rabbitmq_up{service="{{ template "rabbitmq.fullname" . }}"} == 0
+    ##     for: 5m
+    ##     labels:
+    ##       severity: error
+    ##     annotations:
+    ##       summary: Rabbitmq down (instance {{ "{{ $labels.instance }}" }})
+    ##       description: RabbitMQ node down
+
 
 nodeSelector: {}
 
 tolerations: []
 
 affinity: {}
+
+
+configmap:
+  enabled: false
+#    data:
+#      application.yml: |
+#        test:
+#          valami: 1
+#      config.json: |
+#        test2:
+#          valami: 2
+#    binaryData:
+#      server.jks: MTEUNDTiAyIFBsYXRmb3JtIENBMSYwJAYJKoZIhvcNAQkB Fhd0YXh1ZC1s......
+
+
+#  volumeMounts:
+#    - name: folder-input
+#      mountPath: /deployments/input
+#    - name: application-properties
+#      mountPath: /deployments/config
+#      subPath: application.yaml
+
+#  volumes:
+#    - name: folder-input
+#      persistentVolumeClaim:
+#        claimName: alkalmazas1-input
+#    - name: application-properties
+#      configMap:
+#        name: alkalmazas1
+#        defaultMode: 0755
+
+secret:
+  enabled: false
+#  data:
+#    key1: value1
+#    key2: value2
+
+
+
+secretProviderClass:
+  enabled: false
+  provider: azure
+  usePodIdentity: "false"
+  useVMManagedIdentity: "true"
+#  userAssignedIdentityID: ""
+#  keyvaultName: ""
+#  tenantID: ""
+#  objects:
+#    array:
+#      - |
+#        objectName: secret-sauce1
+#        objectType: secret
+#        objectVersion: ""
+#      - |      
+#        objectName: secret-sauce2
+#        objectType: secret
+#        objectVersion: ""
+#  secretObjects:
+#  - data:
+#    - key: username                           # data field to populate
+#      objectName: secret-sauce1               # name of the mounted content to sync. this could be the object name or the object alias
+#    secretName: secret-sauce1                 # name of the Kubernetes Secret object
+#    type: Opaque 
+
+
+
+
+#initContainers:
+#  - name: dbmigrator
+#    image: ifa2containerregistry.azurecr.io/docker/dbmigrator:latest
+#    ports:
+#      - name: http
+#        containerPort: 80
+#        protocol: TCP
+#    env:
+#      - name: ConnectionStrings__DefaultConnection
+#        value: "Data Source = mssql; Initial Catalog = Ifa.Alapadatok; User ID = sa; Password = Toughpass1!; Persist Security Info=True; MultipleActiveResultSets = True; Encrypt = True; TrustServerCertificate = True"
+#      - name: ASPNETCORE_ENVIRONMENT
+#        value: Development
+
+
+
+
+
+# blobvolume
+blobVolume:
+  enabled: false
+#  capacity: 1Gi
+#  accessModes: ReadWriteMany
+#  persistentVolumeReclaimPolicy: Retain
+#  storageClassName: azureblob-nfs-premium
+#  csi:
+#    driver: blob.csi.azure.com
+#    readOnly: false
+#    volumeHandle: ifa2-hub#ifa2test#nginx-blob
+#    volumeAttributes:
+#      resourceGroup: ifa2-hub
+#      storageAccount: ifa2test
+#      containerName: nginx-blob
+#      protocol: nfs
