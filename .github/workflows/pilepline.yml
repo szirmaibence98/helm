@@ -12,7 +12,7 @@ jobs:
     uses: szirmaibence98/templates/.github/workflows/helm.yml@main
     needs: gitversion
     with:
-      release: ${{ github.event.inputs.release == 'true' }}
+      repository: ${{ variables.REPOSITORY_NAME }}
     secrets:
       ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
       ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
